@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* Memastikan latar belakang benar-benar gelap gulita di balik efek kaca */
+body {
+  background-color: #050510; 
+  color: white;
+  margin: 0;
+  overflow: hidden;
+}

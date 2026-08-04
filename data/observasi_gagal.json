@@ -1,0 +1,26 @@
+[
+    {
+        "id_proposal": "PR-WEB-01",
+        "id_instrumen": "OPT01",
+        "waktu_mulai": 1,
+        "waktu_selesai": 2,
+        "target_objek": "Mars",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01",
+        "alasan_penolakan": "Bentrok! OPT01 dipakai pada jam 1:00-2:00.",
+        "waktu_tercatat": "2026-08-01 21:49:41"
+    },
+    {
+        "id_proposal": "PR-WEB-04",
+        "id_instrumen": "RAD01",
+        "waktu_mulai": 4,
+        "waktu_selesai": 5,
+        "target_objek": "Jupiter",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01",
+        "alasan_penolakan": "Instrumen RAD01 sedang dalam pemeliharaan (Maintenance).",
+        "waktu_tercatat": "2026-08-02 08:46:20"
+    }
+]

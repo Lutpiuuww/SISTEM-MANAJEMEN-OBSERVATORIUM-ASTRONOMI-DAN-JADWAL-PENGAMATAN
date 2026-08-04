@@ -1,0 +1,12 @@
+[
+    {
+        "id_kubah": "KUB-01",
+        "nama": "Kubah Utama (Buka-Tutup)",
+        "status_atap": "Terbuka"
+    },
+    {
+        "id_kubah": "KUB-02",
+        "nama": "Area Terbuka Radio",
+        "status_atap": "Permanen Terbuka"
+    }
+]

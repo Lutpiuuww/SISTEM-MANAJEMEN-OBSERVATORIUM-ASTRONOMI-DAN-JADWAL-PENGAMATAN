@@ -1,0 +1,4 @@
+id_proposal,id_instrumen,waktu_mulai,waktu_selesai,target_objek,cuaca,nama_operator,id_kubah
+PR-WEB-01,OPT01,1,2,bumi,Cerah,Muhammad Luthfi Fadil,KUB-01
+PR-WEB-02,OPT01,2,3,Mars,Cerah,Muhammad Luthfi Fadil,KUB-01
+PR-WEB-03,OPT01,3,4,matahari,Cerah,Muhammad Luthfi Fadil,KUB-01

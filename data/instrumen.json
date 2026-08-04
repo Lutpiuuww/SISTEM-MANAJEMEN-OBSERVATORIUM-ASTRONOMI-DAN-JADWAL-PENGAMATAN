@@ -1,0 +1,16 @@
+[
+    {
+        "id_instrumen": "OPT01",
+        "nama": "Teleskop Optik Utama",
+        "status": "Aktif",
+        "batas_mag": 15.5,
+        "tipe": "Optik"
+    },
+    {
+        "id_instrumen": "RAD01",
+        "nama": "Teleskop Radio A",
+        "status": "Aktif",
+        "batas_mag": 0.0,
+        "tipe": "Radio"
+    }
+]

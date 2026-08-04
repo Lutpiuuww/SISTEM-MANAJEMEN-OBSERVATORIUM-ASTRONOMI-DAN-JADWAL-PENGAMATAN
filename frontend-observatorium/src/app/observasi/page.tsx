@@ -9,7 +9,7 @@ export default function ObservasiPage() {
     jam_mulai: "",
     jam_selesai: "",
     instrumen: "Teleskop Optik",
-    cuaca: "Cerah (Clear)"
+    cuaca: "Cerah"
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -111,10 +111,10 @@ export default function ObservasiPage() {
           <div className="space-y-2">
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Cuaca Simulasi</label>
             <select name="cuaca" value={formData.cuaca} onChange={handleChange} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-gray-300 focus:outline-none focus:border-purple-500 transition-colors appearance-none">
-              <option value="Cerah (Clear)">Cerah (Clear)</option>
-              <option value="Berawan (Cloudy)">Berawan (Cloudy)</option>
-              <option value="Hujan (Rain)">Hujan (Rain)</option>
-              <option value="Badai (Storm)">Badai (Storm)</option>
+              <option value="Cerah">Cerah (Clear)</option>
+              <option value="Berawan">Berawan (Cloudy)</option>
+              <option value="Hujan">Hujan (Rain)</option>
+              <option value="Badai Petir">Badai (Storm)</option>
             </select>
           </div>
         </div>

@@ -1,1 +1,52 @@
-[]
+[
+    {
+        "id_proposal": "PR-WEB-01",
+        "target_objek": "Bumi",
+        "jam_mulai": 1,
+        "jam_selesai": 2,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01"
+    },
+    {
+        "id_proposal": "PR-WEB-04",
+        "target_objek": "matahari",
+        "jam_mulai": 7,
+        "jam_selesai": 8,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01"
+    },
+    {
+        "id_proposal": "PR-WEB-03",
+        "target_objek": "Mars",
+        "jam_mulai": 4,
+        "jam_selesai": 5,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01"
+    },
+    {
+        "id_proposal": "PR-WEB-09",
+        "target_objek": "Jupiter",
+        "jam_mulai": 10,
+        "jam_selesai": 11,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01"
+    },
+    {
+        "id_proposal": "PR-WEB-010",
+        "target_objek": "Nebula Orion",
+        "jam_mulai": 12,
+        "jam_selesai": 13,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01"
+    }
+]

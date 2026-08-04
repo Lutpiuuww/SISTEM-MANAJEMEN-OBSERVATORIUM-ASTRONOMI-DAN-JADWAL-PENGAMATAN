@@ -21,7 +21,6 @@ function Loader() {
 function RealisticPlanet({ target }: { target: string }) {
   const targetLower = target.toLowerCase();
   
-  // 1. MATAHARI (Bola Pijar + Korona)
   if (targetLower.includes("matahari") || targetLower.includes("sun")) {
     return (
       <group>
@@ -36,13 +35,9 @@ function RealisticPlanet({ target }: { target: string }) {
       </group>
     );
   }
-
-  // 2. NEBULA (REALISTIS 100% FOTO LOKAL)
+  
   if (targetLower.includes("nebula") || targetLower.includes("awan")) {
-    
-    // Memanggil gambar langsung dari folder "public" milikmu! Bebas dari blokir internet (CORS).
     const nebulaTex = useLoader(THREE.TextureLoader, "/nebula.jpg");
-    
     return (
       <sprite scale={[12, 12, 1]}>
         <spriteMaterial 
@@ -54,11 +49,9 @@ function RealisticPlanet({ target }: { target: string }) {
       </sprite>
     );
   }
-
-  // 3. PLANET SOLID (Bumi, Mars, Jupiter, dll)
+  
   let textureUrl = "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg";
   let planetColor = "#ffffff"; 
-
   if (targetLower.includes("mars")) {
     textureUrl = "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/moon_1024.jpg";
     planetColor = "#ef4444"; 
@@ -67,16 +60,15 @@ function RealisticPlanet({ target }: { target: string }) {
     planetColor = "#d9a066";
   } else if (!targetLower.includes("bumi") && !targetLower.includes("earth")) {
     textureUrl = "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/moon_1024.jpg";
-    planetColor = "#9ca3af"; // Tekstur bulan abu-abu untuk objek acak lainnya
+    planetColor = "#9ca3af";
   }
-
   const texture = useLoader(THREE.TextureLoader, textureUrl);
   
   if (targetLower.includes("jupiter")) {
     const tex = texture.clone();
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(1, 4); // Regangkan untuk membentuk pita gas Jupiter
+    tex.repeat.set(1, 4); 
     tex.needsUpdate = true;
     return (
       <mesh>
@@ -98,9 +90,22 @@ export default function DashboardPage() {
   const [jadwal, setJadwal] = useState<any[]>([]);
   const [telescopeTarget, setTelescopeTarget] = useState<any | null>(null);
 
+  // MENGAMBIL DATA DARI BACKEND DENGAN ANTI-CACHE
   useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem("jadwal_observasi") || "[]");
-    setJadwal(savedData.reverse());
+    const fetchJadwal = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/jadwal", {
+          cache: "no-store"
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setJadwal(data.reverse());
+        }
+      } catch (error) {
+        console.error("Gagal memuat jadwal", error);
+      }
+    };
+    fetchJadwal();
   }, []);
 
   return (
@@ -111,7 +116,6 @@ export default function DashboardPage() {
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
           PETUGAS : Luthfi
         </div>
-
         <div className="bg-[#0a0d16]/10 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-[0_0_30px_rgba(168,85,247,0.15)] relative z-10">
           
           <div className="flex items-center justify-between mb-8">
@@ -125,7 +129,7 @@ export default function DashboardPage() {
             </div>
             <Activity className="text-cyan-400/50" size={32} />
           </div>
-
+          
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -148,10 +152,10 @@ export default function DashboardPage() {
                   jadwal.map((item, index) => (
                     <tr 
                       key={index} 
-                      onClick={() => setTelescopeTarget(item)} // MEMBUKA POPUP SAAT DIKLIK
+                      onClick={() => setTelescopeTarget(item)} 
                       className="border-b border-white/5 hover:bg-white/10 transition-colors cursor-pointer group"
                     >
-                      <td className="py-4 text-emerald-400 font-mono">{item.waktu_input}</td>
+                      <td className="py-4 text-emerald-400 font-mono">{item.jam_mulai}:00 - {item.jam_selesai}:00</td>
                       <td className="py-4 text-white font-bold">{item.id_proposal}</td>
                       <td className="py-4 text-purple-400 font-bold group-hover:text-purple-300">{item.target_objek}</td>
                       <td className="py-4 text-gray-300">{item.instrumen}</td>
@@ -166,18 +170,13 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
-
         </div>
       </div>
 
-      {/* ============================================================ */}
-      {/* POPUP: TANGKAPAN LENSA TELESKOP (Sesuai Gambar Referensi) */}
-      {/* ============================================================ */}
       {telescopeTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#03050a]/90 backdrop-blur-md p-6">
           <div className="bg-[#0a0d16] border border-purple-500/30 rounded-3xl w-full max-w-4xl overflow-hidden shadow-[0_0_80px_rgba(168,85,247,0.15)] animate-in zoom-in-95 duration-300">
             
-            {/* Header Popup */}
             <div className="p-6 flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-black text-purple-400 tracking-wide">Tangkapan Lensa Teleskop</h2>
@@ -192,46 +191,36 @@ export default function DashboardPage() {
                 <X size={20} />
               </button>
             </div>
-
-            {/* Kanvas 3D Area */}
+            
             <div className="relative w-full h-[500px] bg-black rounded-2xl overflow-hidden border-y border-white/5">
               
-              {/* Lensa Bidik (Crosshair Hijau) */}
               <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
                 <div className="w-full h-[1px] bg-emerald-500/40 absolute"></div>
                 <div className="h-full w-[1px] bg-emerald-500/40 absolute"></div>
                 <div className="w-80 h-80 border border-emerald-500/40 rounded-full absolute"></div>
               </div>
-
-              {/* Mesin Render Planet */}
+              
               <Canvas camera={{ position: [0, 0, 6] }}>
-                {/* Pencahayaan dramatis untuk efek luar angkasa */}
                 <ambientLight intensity={0.05} />
                 <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
-                
-                {/* Latar Belakang Bintang */}
                 <Stars radius={100} depth={50} count={3000} factor={3} saturation={0} fade speed={1} />
                 
                 <Suspense fallback={<Loader />}>
                   <RealisticPlanet target={telescopeTarget.target_objek} />
                 </Suspense>
                 
-                {/* Kontrol Mouse */}
                 <OrbitControls enableZoom={true} autoRotate autoRotateSpeed={0.5} />
               </Canvas>
             </div>
-
-            {/* Footer Popup */}
+            
             <div className="p-5 text-center bg-[#0a0d16]">
               <p className="text-xs text-gray-500 font-mono tracking-widest">
                 Gunakan mouse/touch untuk memutar objek 3D secara bebas.
               </p>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }

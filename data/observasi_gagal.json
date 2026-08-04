@@ -22,5 +22,29 @@
         "id_kubah": "KUB-01",
         "alasan_penolakan": "Instrumen RAD01 sedang dalam pemeliharaan (Maintenance).",
         "waktu_tercatat": "2026-08-02 08:46:20"
+    },
+    {
+        "id_proposal": "PR-WEB-01",
+        "target_objek": "bumi",
+        "jam_mulai": 1,
+        "jam_selesai": 2,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah (Clear)",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01",
+        "alasan_penolakan": "Teleskop Optik butuh cuaca cerah. Saat ini: Cerah (Clear)",
+        "waktu_tercatat": "2026-08-04 22:05:24"
+    },
+    {
+        "id_proposal": "PR-WEB-01",
+        "target_objek": "bumi",
+        "jam_mulai": 1,
+        "jam_selesai": 2,
+        "instrumen": "Teleskop Optik",
+        "cuaca": "Cerah (Clear)",
+        "nama_operator": "Muhammad Luthfi Fadil",
+        "id_kubah": "KUB-01",
+        "alasan_penolakan": "Teleskop Optik butuh cuaca cerah. Saat ini: Cerah (Clear)",
+        "waktu_tercatat": "2026-08-04 22:05:31"
     }
 ]

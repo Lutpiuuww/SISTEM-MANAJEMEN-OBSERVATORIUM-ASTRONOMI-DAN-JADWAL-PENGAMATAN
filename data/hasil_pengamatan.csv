@@ -1,4 +1,6 @@
-id_proposal,id_instrumen,waktu_mulai,waktu_selesai,target_objek,cuaca,nama_operator,id_kubah
-PR-WEB-01,OPT01,1,2,bumi,Cerah,Muhammad Luthfi Fadil,KUB-01
-PR-WEB-02,OPT01,2,3,Mars,Cerah,Muhammad Luthfi Fadil,KUB-01
-PR-WEB-03,OPT01,3,4,matahari,Cerah,Muhammad Luthfi Fadil,KUB-01
+id_proposal,target_objek,jam_mulai,jam_selesai,instrumen,cuaca,nama_operator,id_kubah
+PR-WEB-01,Bumi,1,2,Teleskop Optik,Cerah,Muhammad Luthfi Fadil,KUB-01
+PR-WEB-04,matahari,7,8,Teleskop Optik,Cerah,Muhammad Luthfi Fadil,KUB-01
+PR-WEB-03,Mars,4,5,Teleskop Optik,Cerah,Muhammad Luthfi Fadil,KUB-01
+PR-WEB-09,Jupiter,10,11,Teleskop Optik,Cerah,Muhammad Luthfi Fadil,KUB-01
+PR-WEB-010,Nebula Orion,12,13,Teleskop Optik,Cerah,Muhammad Luthfi Fadil,KUB-01

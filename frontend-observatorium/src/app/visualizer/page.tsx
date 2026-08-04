@@ -1,27 +1,26 @@
 "use client";
-import { useState, useEffect, Suspense, useMemo } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Globe, Info, Orbit, Crosshair, AlertCircle } from "lucide-react";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { OrbitControls, Stars, Html, useProgress } from "@react-three/drei";
 import * as THREE from "three";
 
-// 1. Fungsi Dinamis Penghasil Info Objek
+// 1. Fungsi Dinamis Penghasil Info Objek (Diperbarui untuk Tailwind)
 const getPlanetData = (targetName: string) => {
   const name = targetName.toLowerCase();
   if (name.includes("bumi") || name.includes("earth")) {
-    return { desc: "Planet ketiga dari Matahari. Biosfer aktif, tingkat kelembapan stabil.", status: "AMAN (Kondisi Ideal)", theme: "emerald" };
+    return { desc: "Planet ketiga dari Matahari. Biosfer aktif, tingkat kelembapan stabil.", status: "AMAN (Kondisi Ideal)", themeClass: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" };
   }
   if (name.includes("mars")) {
-    return { desc: "Planet merah. Terdeteksi aktivitas badai debu di ekuator utara.", status: "PERINGATAN (Badai Permukaan)", theme: "red" };
+    return { desc: "Planet merah. Terdeteksi aktivitas badai debu di ekuator utara.", status: "PERINGATAN (Badai Permukaan)", themeClass: "bg-red-500/10 text-red-400 border-red-500/30" };
   }
   if (name.includes("jupiter")) {
-    return { desc: "Raksasa gas dengan pola pita awan badai amonia yang kuat.", status: "STABIL (Radiasi Tinggi)", theme: "orange" };
+    return { desc: "Raksasa gas dengan pola pita awan badai amonia yang kuat.", status: "STABIL (Radiasi Tinggi)", themeClass: "bg-orange-500/10 text-orange-400 border-orange-500/30" };
   }
   if (name.includes("matahari") || name.includes("sun")) {
-    return { desc: "Bintang deret utama tipe G. Aktivitas jilatan api (solar flare) terpantau.", status: "AWAS (Panas Ekstrem)", theme: "yellow" };
+    return { desc: "Bintang deret utama tipe G. Aktivitas jilatan api (solar flare) terpantau.", status: "AWAS (Panas Ekstrem)", themeClass: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" };
   }
-  // Default untuk objek acak yang diinput user (misal: Nebula, Komet, Asteroid)
-  return { desc: `Objek angkasa terdaftar: ${targetName}. Sistem sedang melakukan kalibrasi spektrum lanjutan.`, status: "MEMINDAI...", theme: "cyan" };
+  return { desc: `Objek angkasa terdaftar: ${targetName}. Sistem sedang melakukan kalibrasi spektrum lanjutan.`, status: "MEMINDAI...", themeClass: "bg-cyan-500/10 text-cyan-400 border-cyan-500/30" };
 };
 
 // 2. Komponen Loading
@@ -36,11 +35,10 @@ function Loader() {
   );
 }
 
-// 3. Komponen Render Planet Realistis (Visualizer Edition)
+// 3. Komponen Render Planet Realistis
 function RealisticPlanet({ target }: { target: string }) {
   const targetLower = target.toLowerCase();
   
-  // 1. MATAHARI (Bola Pijar + Korona)
   if (targetLower.includes("matahari") || targetLower.includes("sun")) {
     return (
       <group>
@@ -55,13 +53,9 @@ function RealisticPlanet({ target }: { target: string }) {
       </group>
     );
   }
-
-  // 2. NEBULA (REALISTIS 100% FOTO ASLI)
+  
   if (targetLower.includes("nebula") || targetLower.includes("awan")) {
-      
-      // Memanggil gambar langsung dari folder "public" milikmu! Bebas dari blokir internet (CORS).
       const nebulaTex = useLoader(THREE.TextureLoader, "/nebula.jpg");
-      
       return (
         <sprite scale={[12, 12, 1]}>
           <spriteMaterial 
@@ -73,11 +67,9 @@ function RealisticPlanet({ target }: { target: string }) {
         </sprite>
       );
     }
-
-  // 3. PLANET SOLID (Bumi, Mars, Jupiter, dll)
+    
   let textureUrl = "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/earth_atmos_2048.jpg";
   let planetColor = "#ffffff"; 
-
   if (targetLower.includes("mars")) {
     textureUrl = "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/moon_1024.jpg";
     planetColor = "#ef4444"; 
@@ -86,16 +78,15 @@ function RealisticPlanet({ target }: { target: string }) {
     planetColor = "#d9a066";
   } else if (!targetLower.includes("bumi") && !targetLower.includes("earth")) {
     textureUrl = "https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/textures/planets/moon_1024.jpg";
-    planetColor = "#9ca3af"; // Tekstur bulan abu-abu untuk objek acak lainnya
+    planetColor = "#9ca3af";
   }
-
   const texture = useLoader(THREE.TextureLoader, textureUrl);
   
   if (targetLower.includes("jupiter")) {
     const tex = texture.clone();
     tex.wrapS = THREE.RepeatWrapping;
     tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(1, 4); // Regangkan untuk membentuk pita gas Jupiter
+    tex.repeat.set(1, 4); 
     tex.needsUpdate = true;
     return (
       <mesh>
@@ -117,20 +108,36 @@ export default function VisualizerPage() {
   const [jadwalTargets, setJadwalTargets] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
 
-  // Mengambil Data dari Dashboard/Inisiasi saat halaman dibuka
+  // MENGAMBIL DATA DARI BACKEND (PERBAIKAN UTAMA)
   useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem("jadwal_observasi") || "[]");
-    // Mengekstrak hanya nama objeknya (Bumi, Mars, Jupiter, dsb)
-    const targets = savedData.map((item: any) => item.target_objek);
-    // Menyaring agar tidak ada nama planet yang duplikat
-    const uniqueTargets = Array.from(new Set(targets)) as string[];
-    
-    setJadwalTargets(uniqueTargets);
-    
-    // Auto-pilih planet pertama jika ada data
-    if (uniqueTargets.length > 0) {
-      setSelected(uniqueTargets[0]);
-    }
+    const fetchVisualizerData = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/jadwal", {
+          cache: "no-store" // Penangkal Cache
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Ekstrak nama objek
+          const targets = data.map((item: any) => item.target_objek);
+          // Hapus duplikat
+          const uniqueTargets = Array.from(new Set(targets)) as string[];
+          
+          setJadwalTargets(uniqueTargets);
+          
+          // Auto-pilih jika ada
+          if (uniqueTargets.length > 0) {
+            setSelected(uniqueTargets[0]);
+          } else {
+            setSelected(null);
+          }
+        }
+      } catch (error) {
+        console.error("Gagal memuat data target", error);
+      }
+    };
+
+    fetchVisualizerData();
   }, []);
 
   const activeData = selected ? getPlanetData(selected) : null;
@@ -140,7 +147,7 @@ export default function VisualizerPage() {
       
       <div className="w-full max-w-6xl h-[80vh] flex gap-6 relative z-10">
         
-        {/* PANEL KIRI: Menu Pilihan Dinamis */}
+        {/* PANEL KIRI */}
         <div className="w-1/3 h-full bg-[#0a0d16]/10 backdrop-blur-md border border-white/10 rounded-3xl p-8 flex flex-col shadow-[0_0_30px_rgba(168,85,247,0.15)]">
           <div className="flex items-center gap-3 mb-8 border-b border-white/10 pb-6">
             <Orbit className="text-purple-400 animate-spin-slow" size={28} />
@@ -151,8 +158,7 @@ export default function VisualizerPage() {
               <p className="text-xs text-gray-400 tracking-widest font-mono uppercase">Lensa Pemindai Objek</p>
             </div>
           </div>
-
-          {/* Render List berdasarkan Jadwal */}
+          
           {jadwalTargets.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-white/10 rounded-2xl bg-black/20">
               <AlertCircle className="text-gray-500 mb-4" size={40} />
@@ -177,7 +183,7 @@ export default function VisualizerPage() {
               ))}
             </div>
           )}
-
+          
           {/* Info Status Panel Bawah */}
           {activeData && (
             <div className="mt-4 p-5 bg-black/50 border border-white/10 rounded-2xl animate-in fade-in duration-300">
@@ -186,7 +192,7 @@ export default function VisualizerPage() {
                 <div>
                   <span className="text-[10px] text-gray-500 font-mono tracking-widest uppercase block mb-1">Diagnostik Target</span>
                   <p className="text-xs text-gray-300 leading-relaxed">{activeData.desc}</p>
-                  <div className={`mt-3 text-[10px] font-black tracking-widest px-3 py-1 bg-${activeData.theme}-500/10 inline-block rounded-md text-${activeData.theme}-400 border border-${activeData.theme}-500/30`}>
+                  <div className={`mt-3 text-[10px] font-black tracking-widest px-3 py-1 inline-block rounded-md border ${activeData.themeClass}`}>
                     {activeData.status}
                   </div>
                 </div>
@@ -194,8 +200,8 @@ export default function VisualizerPage() {
             </div>
           )}
         </div>
-
-        {/* PANEL KANAN: Kanvas 3D Realistis */}
+        
+        {/* PANEL KANAN */}
         <div className="flex-1 h-full bg-[#0a0d16]/10 backdrop-blur-md border border-white/10 rounded-3xl relative overflow-hidden shadow-[0_0_30px_rgba(168,85,247,0.15)] cursor-move">
           
           {selected ? (
@@ -211,13 +217,11 @@ export default function VisualizerPage() {
                    [Gunakan Mouse Untuk Memutar & Zoom]
                  </span>
               </div>
-
               <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
                  <div className="w-full h-[1px] bg-emerald-500/20 absolute"></div>
                  <div className="h-full w-[1px] bg-emerald-500/20 absolute"></div>
                  <div className="w-96 h-96 border border-emerald-500/20 rounded-full absolute"></div>
               </div>
-
               <Canvas camera={{ position: [0, 0, 6] }}>
                 <ambientLight intensity={0.05} />
                 <directionalLight position={[5, 3, 5]} intensity={2} color="#ffffff" />
@@ -232,15 +236,12 @@ export default function VisualizerPage() {
               </Canvas>
             </>
           ) : (
-             // Tampilan saat tidak ada data sama sekali
              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
                 <Orbit className="text-gray-600 mb-4 animate-spin-slow" size={64} />
                 <p className="text-gray-500 font-mono tracking-widest uppercase">VISUALIZER OFFLINE</p>
              </div>
           )}
-
         </div>
-
       </div>
     </div>
   );

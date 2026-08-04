@@ -2,16 +2,6 @@ import csv
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
-# =====================================================================
-# POLA DESAIN: STRATEGY PATTERN
-# =====================================================================
-# PRINSIP SOLID: Open/Closed Principle (OCP)
-# Penjelasan untuk Laporan: 
-# Sistem ini "Open for extension" (terbuka untuk ditambah format ekspor 
-# baru seperti PDF/TXT) namun "Closed for modification" (tidak perlu 
-# merombak kelas LaporanPengamatan yang sudah ada).
-# =====================================================================
-
 # 1. Strategy Interface
 class StrategiEkspor(ABC):
     @abstractmethod

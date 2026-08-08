@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { CalendarDays, Trash2, AlertCircle } from "lucide-react";
+export const dynamic = "force-dynamic";
 
 export default function JadwalPage() {
   const [jadwal, setJadwal] = useState<any[]>([]);

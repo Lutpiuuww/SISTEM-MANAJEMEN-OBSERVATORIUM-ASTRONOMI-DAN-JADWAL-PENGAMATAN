@@ -4,6 +4,7 @@ import { Globe, Info, Orbit, Crosshair, AlertCircle } from "lucide-react";
 import { Canvas, useLoader } from "@react-three/fiber";
 import { OrbitControls, Stars, Html, useProgress } from "@react-three/drei";
 import * as THREE from "three";
+export const dynamic = "force-dynamic";
 
 // 1. Fungsi Dinamis Penghasil Info Objek (Diperbarui untuk Tailwind)
 const getPlanetData = (targetName: string) => {

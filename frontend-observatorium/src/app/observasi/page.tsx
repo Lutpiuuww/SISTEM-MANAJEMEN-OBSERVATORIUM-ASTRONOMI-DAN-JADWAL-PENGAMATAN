@@ -33,7 +33,7 @@ export default function ObservasiPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("backend-observa.vercel.app", {
+      const response = await fetch("https://backend-observa.vercel.app/api/jadwal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -53,7 +53,8 @@ export default function ObservasiPage() {
       
     } catch (error) {
       console.error("Gagal menghubungi server", error);
-      setErrorMessage("Koneksi gagal! Pastikan server FastAPI (Backend) sedang berjalan di port 8000.");
+      // Ganti teksnya menjadi:
+      setErrorMessage("Koneksi ke peladen Awan (Cloud Backend) gagal! Pastikan link URL sudah benar.");
       setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);

@@ -42,10 +42,15 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=True,
+    allow_credentials=False, # <--- UBAH INI JADI False
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Tambahkan rute ini di bawah middleware agar halaman depanmu terlihat keren
+@app.get("/")
+def halaman_depan():
+    return {"status": "Peladen Backend Observatorium Berjalan Sempurna di Vercel!"}
 
 # ==========================================
 # MEMBACA INSTRUMEN (Tetap dari folder 'data/' karena file statis bawaan GitHub)

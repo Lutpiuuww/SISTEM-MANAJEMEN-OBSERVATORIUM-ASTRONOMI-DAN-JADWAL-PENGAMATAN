@@ -4,19 +4,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import json
 import os
-import datetime
+from supabase import create_client, Client
 
-from src.models.instrumen import TeleskopOptik, TeleskopRadio, KameraLangit
+# IMPORT ARSITEKTUR FOLDER 'src/'
+from src.models.instrumen import TeleskopOptik, TeleskopRadio
 from src.core.exceptions import CuacaTidakLayakError, JadwalInstrumenBentrokError
-# LaporanPengamatan CSV sementara dinonaktifkan di memori agar Vercel tidak crash
-from src.utils.file_handler import LaporanPengamatan, EksporCSV
 
 # ==========================================
-# DATABASE SEMENTARA (IN-MEMORY RAM)
-# Trik darurat agar data bertahan di Vercel tanpa File JSON
+# KONFIGURASI SUPABASE (JALAN NINJA)
 # ==========================================
-DATABASE_JADWAL = []
-DATABASE_GAGAL = []
+# TEMPELKAN URL DAN KEY SUPABASE-MU DI SINI (Pastikan pakai tanda kutip " ")
+SUPABASE_URL = "https://hpkwmngrrygyslhjfjpq.supabase.co" 
+SUPABASE_KEY = "sb_publishable_MrBy-lzZPMRHO3q3JDFeyg_fhTNxOko" 
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# ... (lanjutkan dengan sisa kodemu yang ada di bawahnya, seperti fungsi cuaca dll) ...
+
+# Inisialisasi klien Supabase (Akan gagal jika key belum diisi di Vercel)
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+else:
+    print("Peringatan: Kunci Supabase belum dikonfigurasi!")
 
 def dapatkan_cuaca_lhokseumawe() -> str:
     url = "https://api.open-meteo.com/v1/forecast?latitude=5.1801&longitude=97.1507&current_weather=true"
@@ -31,7 +40,6 @@ def dapatkan_cuaca_lhokseumawe() -> str:
             elif kode_cuaca >= 95: return "Badai Petir"
             else: return "Cerah"
     except Exception as e:
-        print(f"Gagal mengambil cuaca: {e}")
         return "Cerah"
 
 app = FastAPI()
@@ -46,10 +54,10 @@ app.add_middleware(
 
 @app.get("/")
 def halaman_depan():
-    return {"status": "Peladen Backend Observatorium Berjalan Sempurna di Vercel!"}
+    return {"status": "Peladen Backend terhubung ke Supabase dengan aman!"}
 
 # ==========================================
-# MEMBACA KATALOG INSTRUMEN 
+# MEMBACA KATALOG INSTRUMEN (Tetap Statis)
 # ==========================================
 katalog_instrumen = {}
 try:
@@ -78,67 +86,67 @@ class Proposal(BaseModel):
 def get_cuaca_live():
     return {"lokasi": "Lhokseumawe, Aceh", "cuaca": dapatkan_cuaca_lhokseumawe()}
 
-def catat_kegagalan(proposal_dict: dict, alasan_gagal: str):
-    proposal_dict["alasan_penolakan"] = alasan_gagal
-    proposal_dict["waktu_tercatat"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    DATABASE_GAGAL.append(proposal_dict)
-
 # ==========================================
-# ENDPOINT API (MENGGUNAKAN RAM / VARIABEL GLOBAL)
+# ENDPOINT API (SUPABASE INTEGRATION)
 # ==========================================
 @app.get("/api/jadwal")
 def get_semua_jadwal():
-    return DATABASE_JADWAL
+    try:
+        # Mengambil seluruh data dari Supabase
+        response = supabase.table("jadwal_observasi").select("*").execute()
+        return response.data
+    except Exception as e:
+        return []
 
 @app.post("/api/jadwal")
 def ajukan_proposal(proposal: Proposal):
     id_inst_backend = "OPT01" if proposal.instrumen == "Teleskop Optik" else "RAD01"
     
     if id_inst_backend not in katalog_instrumen:
-        raise HTTPException(status_code=404, detail=f"Instrumen tidak ditemukan.")
+        raise HTTPException(status_code=404, detail="Instrumen tidak ditemukan.")
         
     instrumen = katalog_instrumen[id_inst_backend]
     
+    # 1. Validasi Cuaca & Alat (Logika PBO)
     try:
         if id_inst_backend == "RAD01":
             if hasattr(instrumen, "set_status_instrumen"):
                 instrumen.set_status_instrumen("Dalam Perbaikan (Maintenance)")
-            raise CuacaTidakLayakError("Instrumen Teleskop Radio sedang dalam pemeliharaan (Maintenance).")
+            raise CuacaTidakLayakError("Instrumen Teleskop Radio sedang dalam pemeliharaan.")
             
         instrumen.hitung_kelayakan_pengamatan(proposal.cuaca, 45.0, "Cembung")
-        
     except CuacaTidakLayakError as e:
-        catat_kegagalan(proposal.dict(), str(e))
         raise HTTPException(status_code=400, detail=str(e))
         
+    # 2. Validasi Bentrok dari Supabase
     try:
-        # Validasi Bentrok langsung dari array RAM
-        for j in DATABASE_JADWAL:
+        jadwal_lama = supabase.table("jadwal_observasi").select("*").execute().data
+        
+        for j in jadwal_lama:
             if j.get("instrumen") == proposal.instrumen:
                 if not (proposal.jam_selesai <= int(j["jam_mulai"]) or proposal.jam_mulai >= int(j["jam_selesai"])):
                     raise JadwalInstrumenBentrokError(
-                        f"Bentrok! {proposal.instrumen} sudah dijadwalkan pada jam {j['jam_mulai']}:00 - {j['jam_selesai']}:00."
+                        f"Bentrok! {proposal.instrumen} dipakai pada jam {j['jam_mulai']}:00 - {j['jam_selesai']}:00."
                     )
         
+        # 3. Simpan ke Supabase jika lolos semua ujian
         data_baru = proposal.dict()
-        DATABASE_JADWAL.append(data_baru) # Simpan ke variabel global
+        supabase.table("jadwal_observasi").insert(data_baru).execute()
             
-        return {"pesan": f"Proposal {proposal.id_proposal} disetujui."}
+        return {"pesan": f"Proposal {proposal.id_proposal} berhasil diamankan di Cloud!"}
     
     except JadwalInstrumenBentrokError as e:
-        catat_kegagalan(proposal.dict(), str(e))
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error Sistem: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error Supabase: {str(e)}")
 
 @app.delete("/api/jadwal/{id_proposal}")
 def hapus_proposal(id_proposal: str):
-    global DATABASE_JADWAL
-    
-    jadwal_baru = [j for j in DATABASE_JADWAL if j["id_proposal"] != id_proposal]
-    
-    if len(jadwal_baru) == len(DATABASE_JADWAL):
-         raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
-            
-    DATABASE_JADWAL = jadwal_baru
-    return {"pesan": f"Proposal {id_proposal} berhasil dibatalkan."}
+    try:
+        # Hapus berdasarkan ID
+        response = supabase.table("jadwal_observasi").delete().eq("id_proposal", id_proposal).execute()
+        if not response.data:
+             raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
+        return {"pesan": f"Proposal {id_proposal} berhasil dibatalkan."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

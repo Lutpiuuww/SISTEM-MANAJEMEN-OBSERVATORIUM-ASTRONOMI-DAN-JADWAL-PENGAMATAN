@@ -8,7 +8,7 @@ export default function JadwalPage() {
   // FUNGSI MENGAMBIL DATA DARI BACKEND
   const fetchJadwal = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/jadwal", {
+      const response = await fetch("backend-observa.vercel.app", {
         cache: "no-store" // <-- Memastikan data selalu segar (tidak di-cache)
       });
       if (response.ok) {

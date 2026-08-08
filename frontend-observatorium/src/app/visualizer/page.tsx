@@ -112,7 +112,7 @@ export default function VisualizerPage() {
   useEffect(() => {
     const fetchVisualizerData = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/jadwal", {
+        const response = await fetch("backend-observa.vercel.app", {
           cache: "no-store" // Penangkal Cache
         });
         

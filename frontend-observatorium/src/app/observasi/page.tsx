@@ -33,7 +33,7 @@ export default function ObservasiPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch("http://localhost:8000/api/jadwal", {
+      const response = await fetch("backend-observa.vercel.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)

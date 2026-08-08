@@ -34,10 +34,13 @@ export default function ObservasiPage() {
     
     try {
       const response = await fetch("https://backend-observa.vercel.app/api/jadwal", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(formData),
+  cache: "no-store",
+});
 
       if (!response.ok) {
         const errorData = await response.json();

@@ -1,4 +1,3 @@
-# File: main.py
 import urllib.request
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,19 +6,17 @@ import json
 import os
 import datetime
 
-# IMPORT ARSITEKTUR FOLDER 'src/'
 from src.models.instrumen import TeleskopOptik, TeleskopRadio, KameraLangit
 from src.core.exceptions import CuacaTidakLayakError, JadwalInstrumenBentrokError
+# LaporanPengamatan CSV sementara dinonaktifkan di memori agar Vercel tidak crash
 from src.utils.file_handler import LaporanPengamatan, EksporCSV
 
 # ==========================================
-# KONFIGURASI VERCEL (WRITABLE DIRECTORY)
-# Vercel hanya mengizinkan penulisan di folder /tmp/
+# DATABASE SEMENTARA (IN-MEMORY RAM)
+# Trik darurat agar data bertahan di Vercel tanpa File JSON
 # ==========================================
-WRITABLE_DIR = "/tmp"
-FILE_JADWAL = f"{WRITABLE_DIR}/jadwal_observasi.json"
-FILE_GAGAL = f"{WRITABLE_DIR}/observasi_gagal.json"
-FILE_CSV = f"{WRITABLE_DIR}/hasil_pengamatan.csv"
+DATABASE_JADWAL = []
+DATABASE_GAGAL = []
 
 def dapatkan_cuaca_lhokseumawe() -> str:
     url = "https://api.open-meteo.com/v1/forecast?latitude=5.1801&longitude=97.1507&current_weather=true"
@@ -42,18 +39,17 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=False, # <--- UBAH INI JADI False
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Tambahkan rute ini di bawah middleware agar halaman depanmu terlihat keren
 @app.get("/")
 def halaman_depan():
     return {"status": "Peladen Backend Observatorium Berjalan Sempurna di Vercel!"}
 
 # ==========================================
-# MEMBACA INSTRUMEN (Tetap dari folder 'data/' karena file statis bawaan GitHub)
+# MEMBACA KATALOG INSTRUMEN 
 # ==========================================
 katalog_instrumen = {}
 try:
@@ -68,9 +64,6 @@ except FileNotFoundError:
     katalog_instrumen["OPT01"] = TeleskopOptik("OPT01", "Teleskop Optik Utama", 22.5)
     katalog_instrumen["RAD01"] = TeleskopRadio("RAD01", "Teleskop Radio Utama", 30.0)
 
-# ==========================================
-# SKEMA DATA
-# ==========================================
 class Proposal(BaseModel):
     id_proposal: str
     target_objek: str
@@ -86,31 +79,16 @@ def get_cuaca_live():
     return {"lokasi": "Lhokseumawe, Aceh", "cuaca": dapatkan_cuaca_lhokseumawe()}
 
 def catat_kegagalan(proposal_dict: dict, alasan_gagal: str):
-    """Mencatat proposal gagal ke folder /tmp/ Vercel"""
-    data_gagal = []
-    if os.path.exists(FILE_GAGAL):
-        try:
-            with open(FILE_GAGAL, "r") as f:
-                data_gagal = json.load(f)
-        except: pass
-            
     proposal_dict["alasan_penolakan"] = alasan_gagal
     proposal_dict["waktu_tercatat"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    data_gagal.append(proposal_dict)
-    
-    with open(FILE_GAGAL, "w") as f:
-        json.dump(data_gagal, f, indent=4)
+    DATABASE_GAGAL.append(proposal_dict)
 
 # ==========================================
-# ENDPOINT API 
+# ENDPOINT API (MENGGUNAKAN RAM / VARIABEL GLOBAL)
 # ==========================================
 @app.get("/api/jadwal")
 def get_semua_jadwal():
-    try:
-        with open(FILE_JADWAL, "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return []
+    return DATABASE_JADWAL
 
 @app.post("/api/jadwal")
 def ajukan_proposal(proposal: Proposal):
@@ -134,12 +112,8 @@ def ajukan_proposal(proposal: Proposal):
         raise HTTPException(status_code=400, detail=str(e))
         
     try:
-        jadwal_lama = []
-        if os.path.exists(FILE_JADWAL):
-            with open(FILE_JADWAL, "r") as f:
-                jadwal_lama = json.load(f)
-        
-        for j in jadwal_lama:
+        # Validasi Bentrok langsung dari array RAM
+        for j in DATABASE_JADWAL:
             if j.get("instrumen") == proposal.instrumen:
                 if not (proposal.jam_selesai <= int(j["jam_mulai"]) or proposal.jam_mulai >= int(j["jam_selesai"])):
                     raise JadwalInstrumenBentrokError(
@@ -147,16 +121,9 @@ def ajukan_proposal(proposal: Proposal):
                     )
         
         data_baru = proposal.dict()
-        jadwal_lama.append(data_baru)
-        
-        # Simpan ke folder /tmp/ Vercel
-        with open(FILE_JADWAL, "w") as f:
-            json.dump(jadwal_lama, f, indent=4)
+        DATABASE_JADWAL.append(data_baru) # Simpan ke variabel global
             
-        laporan = LaporanPengamatan(EksporCSV())
-        laporan.buat_laporan(jadwal_lama, FILE_CSV)
-            
-        return {"pesan": f"Proposal {proposal.id_proposal} disetujui. Laporan CSV diekspor!"}
+        return {"pesan": f"Proposal {proposal.id_proposal} disetujui."}
     
     except JadwalInstrumenBentrokError as e:
         catat_kegagalan(proposal.dict(), str(e))
@@ -166,21 +133,12 @@ def ajukan_proposal(proposal: Proposal):
 
 @app.delete("/api/jadwal/{id_proposal}")
 def hapus_proposal(id_proposal: str):
-    try:
-        if os.path.exists(FILE_JADWAL):
-            with open(FILE_JADWAL, "r") as f:
-                jadwal_lama = json.load(f)
+    global DATABASE_JADWAL
+    
+    jadwal_baru = [j for j in DATABASE_JADWAL if j["id_proposal"] != id_proposal]
+    
+    if len(jadwal_baru) == len(DATABASE_JADWAL):
+         raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
             
-            jadwal_baru = [j for j in jadwal_lama if j["id_proposal"] != id_proposal]
-            
-            with open(FILE_JADWAL, "w") as f:
-                json.dump(jadwal_baru, f, indent=4)
-            
-            laporan = LaporanPengamatan(EksporCSV())
-            laporan.buat_laporan(jadwal_baru, FILE_CSV)
-            
-            return {"pesan": f"Proposal {id_proposal} berhasil dibatalkan."}
-        
-        raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    DATABASE_JADWAL = jadwal_baru
+    return {"pesan": f"Proposal {id_proposal} berhasil dibatalkan."}
